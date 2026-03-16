@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 550e8400-e29b-41d4-a716-446655440010
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  name: Checking Accounts
+  sort_order: 1
+
+two:
+  id: 550e8400-e29b-41d4-a716-446655440011
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  name: Savings Accounts
+  sort_order: 2

@@ -1,0 +1,28 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 550e8400-e29b-41d4-a716-446655440040
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  account_id: 550e8400-e29b-41d4-a716-446655440020
+  category_id: 550e8400-e29b-41d4-a716-446655440030
+  date: 2026-01-15
+  payee: Whole Foods
+  amount: -125.50
+
+two:
+  id: 550e8400-e29b-41d4-a716-446655440041
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  account_id: 550e8400-e29b-41d4-a716-446655440020
+  category_id: 550e8400-e29b-41d4-a716-446655440031
+  date: 2026-01-10
+  payee: Landlord
+  amount: -1500.00
+
+three:
+  id: 550e8400-e29b-41d4-a716-446655440042
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  account_id: 550e8400-e29b-41d4-a716-446655440020
+  category_id: 550e8400-e29b-41d4-a716-446655440030
+  date: 2026-01-20
+  payee: Employer
+  amount: 3000.00

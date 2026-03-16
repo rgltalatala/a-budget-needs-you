@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 550e8400-e29b-41d4-a716-446655440080
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  category_id: 550e8400-e29b-41d4-a716-446655440030
+  category_group_id: 550e8400-e29b-41d4-a716-446655440070
+  month: 2026-03-01
+  spent: 1500.00
+  allotted: 1500.00
+  balance: 0.00
+
+two:
+  id: 550e8400-e29b-41d4-a716-446655440081
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  category_id: 550e8400-e29b-41d4-a716-446655440031
+  category_group_id: 550e8400-e29b-41d4-a716-446655440070
+  month: 2026-03-01
+  spent: 85.00
+  allotted: 100.00
+  balance: 15.00

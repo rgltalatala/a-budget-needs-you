@@ -1,0 +1,10 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 550e8400-e29b-41d4-a716-446655440100
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  budget_month_id: 550e8400-e29b-41d4-a716-446655440060
+  income: 3000.00
+  carryover: 0.00
+  available: 5000.00
+  notes: March 2026 budget summary

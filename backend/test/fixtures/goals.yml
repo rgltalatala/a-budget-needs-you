@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 550e8400-e29b-41d4-a716-446655440090
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  category_id: 550e8400-e29b-41d4-a716-446655440030
+  goal_type: needed_for_spending
+  target_amount: 5000.00
+
+two:
+  id: 550e8400-e29b-41d4-a716-446655440091
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  category_id: 550e8400-e29b-41d4-a716-446655440031
+  goal_type: monthly_savings_builder
+  target_amount: 100.00

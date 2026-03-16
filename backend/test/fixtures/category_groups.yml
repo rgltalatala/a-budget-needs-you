@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 550e8400-e29b-41d4-a716-446655440070
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  budget_month_id: 550e8400-e29b-41d4-a716-446655440060
+  name: Fixed Expenses
+  is_default: true
+
+two:
+  id: 550e8400-e29b-41d4-a716-446655440071
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  budget_month_id: 550e8400-e29b-41d4-a716-446655440060
+  name: Flexible
+  is_default: false

@@ -1,0 +1,22 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 550e8400-e29b-41d4-a716-446655440030
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  category_group_id: 550e8400-e29b-41d4-a716-446655440070
+  name: Groceries
+  is_default: true
+
+two:
+  id: 550e8400-e29b-41d4-a716-446655440031
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  category_group_id: 550e8400-e29b-41d4-a716-446655440070
+  name: Rent
+  is_default: true
+
+three:
+  id: 550e8400-e29b-41d4-a716-446655440032
+  user_id: 550e8400-e29b-41d4-a716-446655440000
+  category_group_id: 550e8400-e29b-41d4-a716-446655440071
+  name: Dining Out
+  is_default: false
