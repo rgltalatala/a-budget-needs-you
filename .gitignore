@@ -6,3 +6,19 @@
 
 # Local SQL notes (not part of the app)
 notes.sql
+
+# Node
+node_modules/
+.next/
+out/
+
+# Rails
+log/
+tmp/
+vendor/bundle/
+
+# Env files
+.env
+.env.local
+.env.production
+
