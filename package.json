@@ -1,5 +1,10 @@
 {
+  "private": true,
   "dependencies": {
     "@supabase/supabase-js": "^2.99.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4"
   }
 }

@@ -1,20 +1,22 @@
 /**
  * Demo account credentials. Used by the demo sign-in buttons on the login page.
- * - default: from rails db:seed (test@example.com)
- * - mother: from rails runner db/seeds_demo_mother.rb (mother@demo.com, family of 4)
+ * - single: from rails db:seed (USER 1 — 50/30/20 / single male scenario)
+ * - family: from rails db:seed (USER 2 — family scenario)
+ * Optional: `rails runner db/seeds_demo_mother.rb` adds mother@demo.com (not included in default seed).
  * Password change and forgot-password are disabled for these accounts.
  */
 const DEMO_PASSWORD = 'SeedPassword1!';
 
 export const DEMO_OPTIONS = [
-  { id: 'default', label: 'Default demo', email: 'test@example.com', password: DEMO_PASSWORD },
-  { id: 'mother', label: 'Family of 4 demo', email: 'mother@demo.com', password: DEMO_PASSWORD },
+  { id: 'single', label: 'Single demo', email: 'single@example.com', password: DEMO_PASSWORD },
+  { id: 'family', label: 'Family demo', email: 'family@example.com', password: DEMO_PASSWORD },
 ] as const;
 
 /** Emails that are demo/seed accounts (must match backend User::DEMO_EMAILS). */
 export const DEMO_EMAILS: string[] = [
   ...DEMO_OPTIONS.map((d) => d.email),
-  'test@email.com', // seed/mock user used in development
+  'mother@demo.com', // optional: rails runner db/seeds_demo_mother.rb
+  'test@email.com', // dev: ensure_demo_user + seeds_mock_data default
 ];
 
 /** Returns true if the given email belongs to a demo account. */

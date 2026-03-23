@@ -16,6 +16,8 @@ PORT=3001 rails server
 
 The API is at `http://localhost:3001`. The frontend expects this port when running locally.
 
+After `rails db:seed`, demo logins are **`single@example.com`** and **`family@example.com`** (password **`SeedPassword1!`**).
+
 ## Optional: extra seed data
 
 - **Mock data** (full budget, sample transactions):  

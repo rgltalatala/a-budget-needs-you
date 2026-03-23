@@ -1,6 +1,6 @@
 class User < ApplicationRecord
   # Emails that are demo/seed accounts; password change and reset are disabled for these.
-  DEMO_EMAILS = %w[test@example.com mother@demo.com test@email.com].freeze
+  DEMO_EMAILS = %w[single@example.com family@example.com mother@demo.com test@email.com].freeze
 
   has_secure_password
 

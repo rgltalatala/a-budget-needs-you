@@ -24,7 +24,10 @@ rails db:seed
 
 ### 2. Set up the frontend
 
+From the **repo root**, install root deps (Tailwind is listed here so PostCSS can resolve in a monorepo layout), then install the app:
+
 ```bash
+npm install
 cd frontend
 npm install
 ```
@@ -53,10 +56,12 @@ npm run dev
 
 In your browser go to **http://localhost:3000**. Use that URL; the frontend talks to the backend on 3001.
 
-**Sign in:** create an account from the signup page, or use a demo user:
+**Sign in:** create an account from the signup page, or use a demo user (from `rails db:seed`):
 
-- **Default demo:** `test@example.com` / `SeedPassword1!`
-- **Family of 4 demo:** `mother@demo.com` / `SeedPassword1!`
+- **Single demo:** `single@example.com` / `SeedPassword1!`
+- **Family demo:** `family@example.com` / `SeedPassword1!`
+
+Optional: `rails runner db/seeds_demo_mother.rb` adds `mother@demo.com` / `SeedPassword1!`
 
 ---
 
