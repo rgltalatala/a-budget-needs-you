@@ -120,4 +120,20 @@ puts "  - 3 accounts"
 puts "  - 5 categories"
 puts "  - 6 transactions"
 
+# Extended mock data + mother demo (same as running `rails runner db/seeds_mock_data.rb` and
+# `rails runner db/seeds_demo_mother.rb`). Keeps production to a single `rails db:seed`.
+[
+  "seeds_mock_data.rb",
+  "seeds_demo_mother.rb"
+].each do |seed_script|
+  original_argv = ARGV.dup
+  begin
+    ARGV.clear
+    load Rails.root.join("db", seed_script)
+    puts "Loaded #{seed_script}"
+  ensure
+    ARGV.replace(original_argv)
+  end
+end
+
 puts "✅ Realistic behavioral seed complete"
