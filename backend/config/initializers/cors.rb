@@ -3,25 +3,6 @@
 # Avoid CORS issues when API is called from the frontend app.
 # Read more: https://github.com/cyu/rack-cors
 
-require "uri"
-
-module CorsLocalDev
-  module_function
-
-  # True when Origin is http://localhost:*, http://127.0.0.1:*, or http://[::1]:* (any port).
-  def allow_origin?(origin)
-    return false if origin.blank?
-
-    uri = URI.parse(origin)
-    return false unless uri.scheme == "http"
-
-    # URI host for IPv6 loopback is the string "[::1]" (brackets included).
-    ["localhost", "127.0.0.1", "::1", "[::1]"].include?(uri.host)
-  rescue URI::InvalidURIError, ArgumentError
-    false
-  end
-end
-
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     origins do |origin|
@@ -34,8 +15,8 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
 
         allowed.include?(normalize_origin.call(origin))
       else
-        # Development: allow any http origin on localhost / loopback (any port, IPv4, IPv6 [::1]).
-        CorsLocalDev.allow_origin?(origin)
+        # Development: allow localhost frontend and backend.
+        origin == "http://localhost:3000" || origin == "http://127.0.0.1:3000" || origin == "http://localhost:3001" || origin == "http://127.0.0.1:3001"
       end
     end
 

@@ -19,8 +19,8 @@ describe('LoginPage', () => {
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /single demo/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /family demo/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /default demo/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /family of 4 demo/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /forgot password\?/i })).toHaveAttribute('href', '/forgot-password');
   });
 
@@ -33,22 +33,22 @@ describe('LoginPage', () => {
     expect(mockLogin).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123' });
   });
 
-  test('calls login with single demo credentials when Single demo is clicked', async () => {
+  test('calls login with default demo credentials when Default demo is clicked', async () => {
     mockLogin.mockResolvedValue(undefined);
     render(<LoginPage />);
-    fireEvent.click(screen.getByRole('button', { name: /single demo/i }));
+    fireEvent.click(screen.getByRole('button', { name: /default demo/i }));
     expect(mockLogin).toHaveBeenCalledWith({
-      email: 'single@example.com',
+      email: 'test@example.com',
       password: 'SeedPassword1!',
     });
   });
 
-  test('calls login with family demo credentials when Family demo is clicked', async () => {
+  test('calls login with family demo credentials when Family of 4 demo is clicked', async () => {
     mockLogin.mockResolvedValue(undefined);
     render(<LoginPage />);
-    fireEvent.click(screen.getByRole('button', { name: /^family demo$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /family of 4 demo/i }));
     expect(mockLogin).toHaveBeenCalledWith({
-      email: 'family@example.com',
+      email: 'mother@demo.com',
       password: 'SeedPassword1!',
     });
   });

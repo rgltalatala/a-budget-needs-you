@@ -1,19 +1,17 @@
 #!/bin/bash
-set -euo pipefail
 
-# Resolve repo root from this script so backend/frontend work no matter where you invoke from.
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR"
-
+# Start Rails backend on port 3001
 echo "Starting Rails backend on port 3001..."
-cd "$SCRIPT_DIR/backend"
+cd backend
 PORT=3001 rails server &
 RAILS_PID=$!
 
+# Wait a moment for Rails to start
 sleep 3
 
+# Start Next.js frontend on port 3000
 echo "Starting Next.js frontend on port 3000..."
-cd "$SCRIPT_DIR/frontend"
+cd ../frontend
 npm run dev &
 NEXT_PID=$!
 
@@ -26,5 +24,6 @@ echo ""
 echo "Press Ctrl+C to stop both servers"
 echo "=========================================="
 
+# Wait for user interrupt
 trap "kill $RAILS_PID $NEXT_PID 2>/dev/null; exit" INT TERM
 wait

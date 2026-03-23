@@ -15,7 +15,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_000000) do
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
 
-  create_table "account_groups", force: :cascade do |t|
+  create_table "account_groups", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.integer "sort_order", default: 0
