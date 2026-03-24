@@ -19,8 +19,7 @@ def iso_month(date)
   date.beginning_of_month.to_date
 end
 
-# February 2026 is the canonical budget month: its categories and category groups are copied to all other months
-TEMPLATE_MONTH = Date.new(2026, 2, 1).freeze
+# TEMPLATE_MONTH is defined in seeds_base.rb (February 2026 — categories and groups copy to other months).
 
 # Copy category groups and category_months from source budget month to target. Allotted is 0 by default;
 # carryover from the previous month should be applied separately (e.g. via CategoryCarryoverService.apply_carryover_to_next_month).

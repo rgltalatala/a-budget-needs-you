@@ -15,7 +15,7 @@ PAYCHECK_AMOUNT = 2_780.00
 BONUS_TAKE_HOME = 2_750.00
 # Carried debt from before the seed window (they pay well above minimum but not in full — balance trends down).
 OPENING_CARD_DEBT = 4_650.00
-TEMPLATE_MONTH = Date.new(2026, 2, 1).freeze
+# TEMPLATE_MONTH is defined in seeds_base.rb
 
 def iso_month(date)
   date.beginning_of_month.to_date

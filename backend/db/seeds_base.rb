@@ -8,3 +8,6 @@ def ensure_seed_user(email = "test@example.com", name = "Test User")
     u.password = u.password_confirmation = "SeedPassword1!"
   end
 end
+
+# Canonical budget template month — shared by seeds_mock_data.rb and seeds_demo_mother.rb (avoids redefining the constant when both load).
+TEMPLATE_MONTH = Date.new(2026, 2, 1).freeze
