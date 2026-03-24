@@ -4,7 +4,7 @@
 
 require_relative "seeds_base"
 
-user_email = ARGV[0] || "test@email.com"
+user_email = ARGV[0] || "test@example.com"
 user = User.find_by(email: user_email)
 
 unless user
@@ -52,8 +52,13 @@ credit_group = AccountGroup.find_or_create_by!(user: user, name: "Credit Cards")
   ag.sort_order = 2
 end
 
+savings_group = AccountGroup.find_or_create_by!(user: user, name: "Savings Accounts") do |ag|
+  ag.sort_order = 3
+end
+
 # Create accounts
-checking_account = Account.find_or_create_by!(user: user, name: "Primary Checking") do |a|
+# Same name as seeds.rb so db:seed produces one checking account (not "Primary" + "Main").
+checking_account = Account.find_or_create_by!(user: user, name: "Main Checking") do |a|
   a.account_type = "checking"
   a.balance = 3500.00
   a.account_group = checking_group
@@ -63,6 +68,13 @@ credit_card = Account.find_or_create_by!(user: user, name: "Credit Card") do |a|
   a.account_type = "credit"
   a.balance = -1250.00
   a.account_group = credit_group
+end
+
+# Emergency Fund (matches base seeds.rb name when both run — paired transfers fund this account)
+savings_account = Account.find_or_create_by!(user: user, name: "Emergency Fund") do |a|
+  a.account_type = "savings"
+  a.balance = 0.0
+  a.account_group = savings_group
 end
 
 # Create or get categories
@@ -88,6 +100,11 @@ end
 
 # Credit Card Payment: category exists for transactions/accounts but is not in any budget category group
 transfers_category = Category.find_or_create_by!(user: user, name: "Credit Card Payment") do |c|
+  c.is_default = false
+end
+
+# Savings contributions (paired checking → savings; visible in register + Emergency Fund balance)
+savings_category = Category.find_or_create_by!(user: user, name: "Savings") do |c|
   c.is_default = false
 end
 
@@ -178,6 +195,35 @@ while current_payday <= end_date
 end
 
 puts "  Created #{income_count} income transactions"
+
+# Emergency Fund: realistic paired transfers (checking → savings) twice per month
+puts "Creating Emergency Fund contributions..."
+savings_transfer_count = 0
+start_date.upto(end_date) do |date|
+  next unless [1, 15].include?(date.day)
+  # Vary slightly so find_or_create stays unique per event
+  amount = date.day == 1 ? 200.0 : 125.0
+  Transaction.find_or_create_by!(
+    user: user,
+    account: checking_account,
+    category: savings_category,
+    date: date,
+    amount: -amount
+  ) do |t|
+    t.payee = "Transfer to Emergency Fund"
+  end
+  Transaction.find_or_create_by!(
+    user: user,
+    account: savings_account,
+    category: savings_category,
+    date: date,
+    amount: amount
+  ) do |t|
+    t.payee = "Transfer to Emergency Fund"
+  end
+  savings_transfer_count += 2
+end
+puts "  Created #{savings_transfer_count / 2} savings transfer events (#{savings_transfer_count} legs)"
 
 # Create recurring bills on credit card (monthly)
 puts "Creating recurring bills..."
@@ -420,12 +466,14 @@ puts "  Created #{created_rest} new month(s); existing months skipped."
 puts "Recalculating account balances..."
 checking_account.recalculate_balance!
 credit_card.recalculate_balance!
+savings_account.recalculate_balance!
 
 puts "\n✅ Mock data created successfully!"
 puts "  - Budget: Created (ID: #{budget.id})"
 puts "  - Checking Account: #{checking_account.name} (Balance: $#{checking_account.balance.round(2)})"
+puts "  - Emergency Fund: #{savings_account.name} (Balance: $#{savings_account.balance.round(2)})"
 puts "  - Credit Card: #{credit_card.name} (Balance: $#{credit_card.balance.round(2)})"
-puts "  - Total transactions: #{income_count + bill_count + grocery_count + misc_count + payment_count}"
+puts "  - Total transactions: #{income_count + savings_transfer_count + bill_count + grocery_count + misc_count + payment_count}"
 puts "  - Category groups (this month): #{budget_month.category_groups.count}"
 puts "  - Category months (this month): #{user.category_months.where(month: current_month).count}"
 puts "  - Previous months backfilled: #{NUM_PREVIOUS_MONTHS + 1} (with summaries and carryover)"

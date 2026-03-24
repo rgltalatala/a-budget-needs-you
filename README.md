@@ -22,6 +22,8 @@ rails db:migrate
 rails db:seed
 ```
 
+`rails db:seed` runs the base data, then **`seeds_mock_data.rb` for `test@example.com`** (same account as the default demo), then the mother demo. Mock data adds budget months, category groups, and extra transactions; the base block alone only creates accounts/categories/transactions without a budget structure—so you need the mock step for the budget screen to show groups. If anything looks wrong (empty budget, duplicate categories), reset with `rails db:reset db:seed`.
+
 ### 2. Set up the frontend
 
 ```bash

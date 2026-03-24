@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_13_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_16_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
 
-  create_table "account_groups", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "account_groups", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.integer "sort_order", default: 0
@@ -66,6 +66,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_000000) do
     t.datetime "updated_at", null: false
     t.uuid "user_id"
     t.index ["category_group_id"], name: "index_categories_on_category_group_id"
+    t.index ["user_id", "category_group_id", "name"], name: "index_categories_on_user_group_name_unique", unique: true, where: "((category_group_id IS NOT NULL) AND (user_id IS NOT NULL))"
+    t.index ["user_id", "name"], name: "index_categories_on_user_and_name_no_group_unique", unique: true, where: "((category_group_id IS NULL) AND (user_id IS NOT NULL))"
     t.index ["user_id", "name"], name: "index_categories_on_user_id_and_name"
     t.index ["user_id"], name: "index_categories_on_user_id"
   end

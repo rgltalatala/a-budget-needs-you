@@ -73,6 +73,47 @@ module Api
         assert_response :unprocessable_entity
       end
 
+      test "should not create duplicate category name in same category group" do
+        assert_no_difference("Category.count") do
+          post api_v1_categories_url,
+               params: {
+                 category: {
+                   name: @category.name,
+                   category_group_id: @category.category_group_id,
+                   is_default: false
+                 }
+               },
+               headers: auth_headers_for(@user), as: :json
+        end
+
+        assert_response :unprocessable_entity
+      end
+
+      test "should not create second ungrouped category with same name" do
+        post api_v1_categories_url,
+             params: {
+               category: {
+                 name: "Ungrouped Unique Name X",
+                 is_default: false
+               }
+             },
+             headers: auth_headers_for(@user), as: :json
+        assert_response :created
+
+        assert_no_difference("Category.count") do
+          post api_v1_categories_url,
+               params: {
+                 category: {
+                   name: "Ungrouped Unique Name X",
+                   is_default: false
+                 }
+               },
+               headers: auth_headers_for(@user), as: :json
+        end
+
+        assert_response :unprocessable_entity
+      end
+
       test "should update category" do
         patch api_v1_category_url(@category),
               params: {

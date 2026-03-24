@@ -122,13 +122,18 @@ puts "  - 6 transactions"
 
 # Extended mock data + mother demo (same as running `rails runner db/seeds_mock_data.rb` and
 # `rails runner db/seeds_demo_mother.rb`). Keeps production to a single `rails db:seed`.
-[
-  "seeds_mock_data.rb",
-  "seeds_demo_mother.rb"
-].each do |seed_script|
+#
+# Pass the primary demo email into seeds_mock_data.rb — if ARGV is empty it defaults to
+# test@example.com (must match the user above and frontend demo login).
+SEED_EXTRA_SCRIPTS = [
+  ["seeds_mock_data.rb", ["test@example.com"]],
+  ["seeds_demo_mother.rb", []]
+].freeze
+
+SEED_EXTRA_SCRIPTS.each do |seed_script, argv|
   original_argv = ARGV.dup
   begin
-    ARGV.clear
+    ARGV.replace(argv)
     load Rails.root.join("db", seed_script)
     puts "Loaded #{seed_script}"
   ensure

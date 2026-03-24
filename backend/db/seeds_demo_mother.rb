@@ -2,15 +2,19 @@
 # Run with: rails runner db/seeds_demo_mother.rb
 # Login: mother@demo.com / SeedPassword1!
 #
-# Income: ~$55k take-home ($75k gross), paid bi-weekly ($2,115/paycheck), 5% EOY bonus (~$2,750 take-home)
+# Income: ~$72k take-home (seed uses $2,780/paycheck), 5% EOY bonus (~$2,750 take-home). Re-seeding without
+# db:reset can duplicate variable card transactions (random amounts) — use rails db:reset db:seed for stable numbers.
 # 50% essentials | 20% savings/debt | 30% discretionary
 
 require_relative "seeds_base"
 
 DEMO_MOTHER_EMAIL = "mother@demo.com"
 DEMO_MOTHER_NAME = "Sarah (Family of 4)"
-PAYCHECK_AMOUNT = 2_115.00
+# Bi-weekly take-home — tuned with partial card paydown so checking stays positive after large card payments.
+PAYCHECK_AMOUNT = 2_780.00
 BONUS_TAKE_HOME = 2_750.00
+# Carried debt from before the seed window (they pay well above minimum but not in full — balance trends down).
+OPENING_CARD_DEBT = 4_650.00
 TEMPLATE_MONTH = Date.new(2026, 2, 1).freeze
 
 def iso_month(date)
@@ -50,7 +54,7 @@ credit_group = AccountGroup.find_or_create_by!(user: user, name: "Credit Cards")
 
 checking = Account.find_or_create_by!(user: user, name: "Main Checking") do |a|
   a.account_type = "checking"
-  a.balance = 3_200.00
+  a.balance = 6_800.00
   a.account_group = checking_group
 end
 
@@ -62,7 +66,7 @@ end
 
 credit_card = Account.find_or_create_by!(user: user, name: "Credit Card") do |a|
   a.account_type = "credit"
-  a.balance = -800.00
+  a.balance = -OPENING_CARD_DEBT
   a.account_group = credit_group
 end
 
@@ -159,88 +163,142 @@ if dec_bonus_date <= end_date && dec_bonus_date >= start_date
 end
 puts "  #{income_count} income transactions"
 
+# Prior statement balance — establishes real debt so partial payments read as active paydown vs. minimum-only.
+puts "Creating opening card balance (carried debt)..."
+Transaction.find_or_create_by!(
+  user: user,
+  account: credit_card,
+  category: transfers_category,
+  date: start_date - 1.day,
+  amount: -OPENING_CARD_DEBT,
+  payee: "Opening balance (prior statement)"
+)
+
 # Recurring essentials (monthly)
+# Majority of spend hits the card (groceries, gas, dining, subscriptions, many bills). Checking holds large
+# fixed ACH: mortgage, payroll health, daycare, student loan, brokerage — things that rarely go on a card.
 puts "Creating recurring expenses..."
-recurring = [
-  { payee: "Mortgage", amount: -1_100, category: categories["Mortgage"] },
+recurring_checking = [
+  { payee: "Mortgage (ACH)", amount: -1_100, category: categories["Mortgage"] },
+  { payee: "Health Insurance (payroll/ACH)", amount: -150, category: categories["Healthcare"] },
+  { payee: "Daycare (2 kids)", amount: -350, category: categories["Childcare"] },
+  { payee: "Student Loan", amount: -400, category: categories["Student Loans"] },
+  { payee: "Brokerage — Investments", amount: -167, category: categories["Investments"] },
+]
+recurring_credit_card = [
   { payee: "Electric & Gas Co", amount: -85, category: categories["Utilities"] },
   { payee: "Internet", amount: -65, category: categories["Utilities"] },
-  { payee: "Health Insurance", amount: -150, category: categories["Healthcare"] },
-  { payee: "Daycare (2 kids)", amount: -350, category: categories["Childcare"] },
+  { payee: "Car & Home Insurance (card autopay)", amount: -92, category: categories["Insurance"] },
   { payee: "Netflix", amount: -15.99, category: categories["Subscriptions"] },
   { payee: "Spotify", amount: -9.99, category: categories["Subscriptions"] },
-  { payee: "Phone", amount: -45, category: categories["Subscriptions"] },
-  { payee: "Car & Home Insurance", amount: -92, category: categories["Insurance"] },
-  { payee: "Student Loan", amount: -400, category: categories["Student Loans"] },
-  { payee: "Savings Transfer", amount: -350, category: categories["Savings"] },
-  { payee: "Investment Transfer", amount: -167, category: categories["Investments"] },
+  { payee: "Phone (mobile)", amount: -45, category: categories["Subscriptions"] },
+  { payee: "Water / sewer (municipal card)", amount: -42, category: categories["Utilities"] },
 ]
 recurring_count = 0
 start_date.upto(end_date) do |date|
   next unless date.day == 1
-  recurring.each do |r|
+  recurring_checking.each do |r|
     Transaction.find_or_create_by!(user: user, account: checking, category: r[:category], date: date, amount: r[:amount]) { |t| t.payee = r[:payee] }
     recurring_count += 1
   end
+  recurring_credit_card.each do |r|
+    Transaction.find_or_create_by!(user: user, account: credit_card, category: r[:category], date: date, amount: r[:amount]) { |t| t.payee = r[:payee] }
+    recurring_count += 1
+  end
 end
-puts "  #{recurring_count} recurring transactions"
+puts "  #{recurring_count} recurring transactions (ACH/checking + card autopays)"
 
-# Groceries (~$1,500/mo for family of 4) - weekly-ish
-grocery_stores = ["Whole Foods", "Trader Joe's", "Costco", "Safeway", "Target"]
+# Savings goal: paired legs (checking → Emergency Fund) so the savings register shows real funding.
+puts "Creating savings transfers to Emergency Fund..."
+savings_transfer_events = 0
+start_date.upto(end_date) do |date|
+  next unless date.day == 1
+  amt = 350.0
+  Transaction.find_or_create_by!(user: user, account: checking, category: categories["Savings"], date: date, amount: -amt) { |t| t.payee = "Transfer to Emergency Fund" }
+  Transaction.find_or_create_by!(user: user, account: savings_account, category: categories["Savings"], date: date, amount: amt) { |t| t.payee = "Transfer to Emergency Fund" }
+  savings_transfer_events += 1
+end
+puts "  #{savings_transfer_events} monthly savings transfers (#{savings_transfer_events * 2} legs)"
+
+# Groceries (~$1,400–1,700/mo for family of 4) — almost all card (Costco, Target, etc.)
+grocery_stores = ["Whole Foods", "Trader Joe's", "Costco", "Safeway", "Target", "Kroger"]
 start_date.upto(end_date) do |date|
   next unless date.saturday? || date.sunday?
-  next if rand < 0.25
-  amt = -(rand(80..220).to_f.round(2))
+  next if rand < 0.24
+  amt = -(rand(70..195).to_f.round(2))
   Transaction.find_or_create_by!(user: user, account: credit_card, category: categories["Groceries"], date: date, amount: amt) { |t| t.payee = grocery_stores.sample }
 end
 
-# Gas (~$200/mo)
+# Mid-week small grocery / pharmacy top-ups (card) — keep volume realistic without outpacing paydown
 start_date.upto(end_date) do |date|
-  next unless date.wday == 0 && rand < 0.6
-  Transaction.find_or_create_by!(user: user, account: credit_card, category: categories["Gas"], date: date, amount: -(rand(45..65).to_f.round(2))) { |t| t.payee = "Gas Station" }
+  next if rand < 0.90
+  next if date.saturday? || date.sunday?
+  Transaction.find_or_create_by!(user: user, account: credit_card, category: categories["Groceries"], date: date, amount: -(rand(12..48).to_f.round(2))) { |t| t.payee = ["Target", "CVS", "Walgreens", "Grocery Express"].sample }
 end
 
-# Eating out (~$500/mo)
+# Gas (~$200/mo) — pay at pump with card
 start_date.upto(end_date) do |date|
-  next if rand < 0.7
-  Transaction.find_or_create_by!(user: user, account: credit_card, category: categories["Eating Out"], date: date, amount: -(rand(25..85).to_f.round(2))) { |t| t.payee = ["Chipotle", "Pizza", "Family Restaurant", "Coffee Shop"].sample }
+  next unless date.wday == 0 && rand < 0.65
+  Transaction.find_or_create_by!(user: user, account: credit_card, category: categories["Gas"], date: date, amount: -(rand(42..68).to_f.round(2))) { |t| t.payee = ["Shell", "Chevron", "Costco Gas", "BP"].sample }
+end
+
+# Eating out (~$400–500/mo)
+start_date.upto(end_date) do |date|
+  next if rand < 0.68
+  Transaction.find_or_create_by!(user: user, account: credit_card, category: categories["Eating Out"], date: date, amount: -(rand(18..85).to_f.round(2))) { |t| t.payee = ["Chipotle", "Pizza", "Family Restaurant", "Coffee Shop", "DoorDash", "Café"].sample }
 end
 
 # Clothes, Miscellaneous, Personal & Kids (discretionary)
 start_date.upto(end_date) do |date|
-  next if rand < 0.85
+  next if rand < 0.80
   cat = [categories["Clothes"], categories["Miscellaneous"], categories["Personal & Kids"]].sample
   payees = { "Clothes" => ["Target", "Old Navy", "Amazon"], "Miscellaneous" => ["Amazon", "CVS", "Starbucks"], "Personal & Kids" => ["Kids Activities", "Haircut", "Pharmacy"] }
   payee = payees[cat.name].sample
-  Transaction.find_or_create_by!(user: user, account: credit_card, category: cat, date: date, amount: -(rand(15..120).to_f.round(2))) { |t| t.payee = payee }
+  Transaction.find_or_create_by!(user: user, account: credit_card, category: cat, date: date, amount: -(rand(12..130).to_f.round(2))) { |t| t.payee = payee }
 end
 
-# Healthcare (copays, etc.)
+# Online / everyday card spend
+start_date.upto(end_date) do |date|
+  next if rand < 0.92
+  Transaction.find_or_create_by!(user: user, account: credit_card, category: categories["Miscellaneous"], date: date, amount: -(rand(8..72).to_f.round(2))) { |t| t.payee = ["Amazon", "Amazon Prime", "Target.com", "Apple Pay Purchase"].sample }
+end
+
+# Healthcare (copays, pharmacy — usually card at point of sale)
 start_date.upto(end_date) do |date|
   next if rand < 0.95
-  Transaction.find_or_create_by!(user: user, account: checking, category: categories["Healthcare"], date: date, amount: -(rand(20..75).to_f.round(2))) { |t| t.payee = "Doctor / Pharmacy" }
+  Transaction.find_or_create_by!(user: user, account: credit_card, category: categories["Healthcare"], date: date, amount: -(rand(20..75).to_f.round(2))) { |t| t.payee = "Doctor / Pharmacy" }
 end
 
-# Credit card payments (pay in full on 1st of next month)
-payment_date = start_date + 1.month
-payment_end = [end_date, end_date.end_of_year].max
-while payment_date <= payment_end
-  if payment_date.day == 1
-    prev_start = payment_date - 1.month
-    prev_end = payment_date - 1.day
-    total_charges = Transaction.where(user: user, account: credit_card).where("date >= ? AND date <= ?", prev_start, prev_end).where("amount < 0").sum(:amount)
-    if total_charges < 0
-      payment_amt = -total_charges
-      [[checking, -payment_amt], [credit_card, payment_amt]].each do |acct, amt|
-        tx = Transaction.find_or_initialize_by(user: user, account: acct, date: payment_date, payee: "Credit Card Payment")
-        tx.category = transfers_category
-        tx.amount = amt
-        tx.save!
-      end
+# Credit card payments: pay well above minimum each month (not in full) so total owed trends down vs. new spending.
+puts "Creating credit card payments (debt snowball — partial paydown each month)..."
+payment_count = 0
+last_payment_date = end_date.beginning_of_month.advance(months: 1)
+payment_date = start_date.beginning_of_month.advance(months: 1)
+months_since_start = 0
+while payment_date <= last_payment_date
+  as_of = payment_date - 1.day
+  owed = Transaction.where(user: user, account: credit_card).where("date <= ?", as_of).sum(:amount)
+  # owed < 0 means balance on card (debt)
+  if owed.negative?
+    debt = owed.abs
+    minimum_due = [debt * 0.02, 35.0].max.round(2)
+    # Rising paydown rate month over month — above minimum, but sized so checking can stay positive.
+    pct = 0.445 + [months_since_start * 0.028, 0.10].min
+    target_pay = [minimum_due + 395.0, (debt * pct).round(2)].max
+    pay_amt = [target_pay, debt].min.round(2)
+    puts "    #{payment_date.strftime('%b %d, %Y')}: pay $#{pay_amt} (minimum ~$#{minimum_due} — extra $#{(pay_amt - minimum_due).round(2)} toward balance)"
+    [[checking, -pay_amt], [credit_card, pay_amt]].each do |acct, amt|
+      tx = Transaction.find_or_initialize_by(user: user, account: acct, date: payment_date, payee: "Credit Card Payment")
+      tx.category = transfers_category
+      tx.amount = amt
+      tx.save!
     end
+    payment_count += 1
+    months_since_start += 1
   end
   payment_date = payment_date.advance(months: 1)
 end
+puts "  #{payment_count} monthly payment(s) (partial paydown — each payment is well above minimum)"
 
 # Carryover from previous month to current
 if current_month != TEMPLATE_MONTH
@@ -315,6 +373,26 @@ yr = TEMPLATE_MONTH.year
 checking.recalculate_balance!
 credit_card.recalculate_balance!
 savings_account.recalculate_balance!
+
+if checking.balance.negative?
+  raise "Mother demo seed: Main Checking balance is negative ($#{checking.balance.round(2)}). " \
+        "Increase PAYCHECK_AMOUNT or reduce OPENING_CARD_DEBT / payment targets in seeds_demo_mother.rb."
+end
+
+cc_tx = Transaction.where(user: user, account: credit_card).count
+ch_tx = Transaction.where(user: user, account: checking).count
+sv_tx = Transaction.where(user: user, account: savings_account).count
+exp_cc = Transaction.where(user: user, account: credit_card).where("amount < 0").count
+exp_ch = Transaction.where(user: user, account: checking).where("amount < 0").count
+exp_total = exp_cc + exp_ch
+pct_exp_card = exp_total.positive? ? ((exp_cc.to_f / exp_total) * 100).round : 0
+puts "  Expense transactions (outflows): credit card #{exp_cc}, checking #{exp_ch} (#{pct_exp_card}% of outflows on card)"
+puts "  All accounts (incl. income): card #{cc_tx}, checking #{ch_tx}, emergency fund #{sv_tx}"
+
+card_balance = credit_card.balance
+payments_to_card = Transaction.where(user: user, account: credit_card, category: transfers_category).where("amount > 0").sum(:amount)
+puts "  Credit card balance (amount owed): $#{card_balance.round(2)}"
+puts "  Total applied to card from checking (payments): $#{payments_to_card.round(2)} (opening carry was -$#{OPENING_CARD_DEBT})"
 
 puts "\n✅ Demo mother created successfully!"
 puts "  Login: #{DEMO_MOTHER_EMAIL} / SeedPassword1!"
